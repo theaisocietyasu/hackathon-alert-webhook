@@ -2,6 +2,18 @@
   "discord_webhook_url": "https://discord.com/api/webhooks/1433882728570421452/mHMCzGkqFy7lkWu0a6vwg_S2bzaiMnSe-H3PMD8LH5Zo1XXvXG_FlQ32oV7ScsOaA3z5",
   "sources": [
     {
+      "name": "HackClub",
+      "enabled": true,
+      "type": "api",
+      "description": "Hack Club Hackathons API - student/community hackathons worldwide"
+    },
+    {
+      "name": "EuroHackathons",
+      "enabled": true,
+      "type": "api",
+      "description": "Euro-Hackathons API - European hackathons"
+    },
+    {
       "name": "Hackalist",
       "enabled": true,
       "type": "api",
@@ -9,15 +21,15 @@
     },
     {
       "name": "MLH",
-      "enabled": true,
+      "enabled": false,
       "type": "scrape",
-      "description": "Major League Hacking - official high-quality events"
+      "description": "Major League Hacking - DISABLED (403 errors)"
     },
     {
       "name": "Devpost",
-      "enabled": true,
+      "enabled": false,
       "type": "scrape",
-      "description": "Most comprehensive source including online and hybrid hackathons"
+      "description": "Devpost RSS - DISABLED (406 errors)"
     }
   ],
   "check_interval_hours": 3,

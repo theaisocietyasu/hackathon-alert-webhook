@@ -160,6 +160,137 @@ def fetch_mlh_hackathons() -> List[Dict]:
 
     return hackathons
 
+def fetch_hackclub_hackathons() -> List[Dict]:
+    """Fetch hackathons from Hack Club Hackathons API"""
+    hackathons = []
+    url = "https://hackathons.hackclub.com/api/events/upcoming"
+
+    try:
+        response = requests.get(url, timeout=10)
+
+        if response.status_code != 200:
+            print(f"⚠️  Hack Club API returned status {response.status_code}")
+            return hackathons
+
+        events = response.json()
+        now = datetime.now()
+
+        print(f"  Found {len(events)} upcoming hackathons from Hack Club")
+
+        for event in events:
+            try:
+                # Parse ISO format dates and make them timezone-naive for comparison
+                start_date = date_parser.parse(event.get("start", ""))
+                end_date = date_parser.parse(event.get("end", ""))
+
+                # Convert to naive datetime if timezone-aware
+                if start_date.tzinfo is not None:
+                    start_date = start_date.replace(tzinfo=None)
+                if end_date.tzinfo is not None:
+                    end_date = end_date.replace(tzinfo=None)
+
+                # Only future hackathons
+                if end_date > now:
+                    # Determine type
+                    event_type = "Online"
+                    if event.get("virtual"):
+                        event_type = "Online"
+                    elif event.get("hybrid"):
+                        event_type = "Hybrid"
+                    elif event.get("city"):
+                        event_type = "In-Person"
+
+                    # Build location string
+                    location_parts = []
+                    if event.get("city"):
+                        location_parts.append(event.get("city"))
+                    if event.get("state"):
+                        location_parts.append(event.get("state"))
+                    if event.get("country"):
+                        location_parts.append(event.get("country"))
+
+                    location = ", ".join(location_parts) if location_parts else "Online"
+
+                    hackathons.append({
+                        "name": event.get("name", "Untitled Hackathon"),
+                        "start_date": start_date,
+                        "end_date": end_date,
+                        "location": location,
+                        "url": event.get("website", ""),
+                        "type": event_type,
+                        "source": "Hack Club"
+                    })
+            except (ValueError, TypeError, KeyError) as e:
+                print(f"⚠️  Skipping invalid Hack Club entry: {e}")
+                continue
+
+    except Exception as e:
+        print(f"⚠️  Error fetching Hack Club: {e}")
+
+    return hackathons
+
+def fetch_euro_hackathons() -> List[Dict]:
+    """Fetch hackathons from Euro-Hackathons API"""
+    hackathons = []
+    url = "https://euro-hackathons.com/api/hackathons?status=upcoming"
+
+    try:
+        response = requests.get(url, timeout=10)
+
+        if response.status_code != 200:
+            print(f"⚠️  Euro-Hackathons API returned status {response.status_code}")
+            return hackathons
+
+        data = response.json()
+        now = datetime.now()
+
+        # Handle both direct array and wrapped response
+        events = data if isinstance(data, list) else data.get("hackathons", [])
+        print(f"  Found {len(events)} upcoming hackathons from Euro-Hackathons")
+
+        for event in events:
+            try:
+                # Parse dates (format may vary)
+                start_str = event.get("startDate") or event.get("start_date") or event.get("date")
+                end_str = event.get("endDate") or event.get("end_date")
+
+                if not start_str:
+                    continue
+
+                start_date = date_parser.parse(start_str)
+                end_date = date_parser.parse(end_str) if end_str else start_date + timedelta(days=2)
+
+                # Only future hackathons
+                if end_date > now:
+                    # Determine type
+                    event_type = "In-Person"  # Default for European hackathons
+                    mode = (event.get("mode") or event.get("type") or "").lower()
+                    if "online" in mode or "virtual" in mode:
+                        event_type = "Online"
+                    elif "hybrid" in mode:
+                        event_type = "Hybrid"
+
+                    # Location
+                    location = event.get("location") or event.get("city") or "Europe"
+
+                    hackathons.append({
+                        "name": event.get("name") or event.get("title", "Untitled Hackathon"),
+                        "start_date": start_date,
+                        "end_date": end_date,
+                        "location": location,
+                        "url": event.get("website") or event.get("url") or event.get("link", ""),
+                        "type": event_type,
+                        "source": "Euro-Hackathons"
+                    })
+            except (ValueError, TypeError, KeyError) as e:
+                print(f"⚠️  Skipping invalid Euro-Hackathons entry: {e}")
+                continue
+
+    except Exception as e:
+        print(f"⚠️  Error fetching Euro-Hackathons: {e}")
+
+    return hackathons
+
 def fetch_devpost_hackathons() -> List[Dict]:
     """Fetch hackathons from Devpost RSS feed"""
     hackathons = []
@@ -370,7 +501,11 @@ def main():
         source_name = source_config.get("name")
         print(f"🔍 Fetching from {source_name}...")
 
-        if source_name == "Hackalist":
+        if source_name == "HackClub":
+            all_hackathons.extend(fetch_hackclub_hackathons())
+        elif source_name == "EuroHackathons":
+            all_hackathons.extend(fetch_euro_hackathons())
+        elif source_name == "Hackalist":
             all_hackathons.extend(fetch_hackalist_hackathons())
         elif source_name == "MLH":
             all_hackathons.extend(fetch_mlh_hackathons())
