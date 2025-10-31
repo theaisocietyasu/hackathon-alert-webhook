@@ -3,7 +3,7 @@ name: Hackathon Alert Checker
 on:
   schedule:
     # Run every 3 hours
-    - cron: '0 */3 * * *'
+    - cron: "0 */6 * * *"
   # Allow manual trigger
   workflow_dispatch:
 
@@ -21,7 +21,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.9'
+          python-version: "3.9"
 
       - name: Install dependencies
         run: |
