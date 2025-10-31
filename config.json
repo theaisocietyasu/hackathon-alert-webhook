@@ -1,0 +1,29 @@
+{
+  "discord_webhook_url": "https://discord.com/api/webhooks/1433882728570421452/mHMCzGkqFy7lkWu0a6vwg_S2bzaiMnSe-H3PMD8LH5Zo1XXvXG_FlQ32oV7ScsOaA3z5",
+  "sources": [
+    {
+      "name": "Hackalist",
+      "enabled": true,
+      "type": "api",
+      "description": "GitHub-based JSON API with structured hackathon data"
+    },
+    {
+      "name": "MLH",
+      "enabled": true,
+      "type": "scrape",
+      "description": "Major League Hacking - official high-quality events"
+    },
+    {
+      "name": "Devpost",
+      "enabled": true,
+      "type": "scrape",
+      "description": "Most comprehensive source including online and hybrid hackathons"
+    }
+  ],
+  "check_interval_hours": 3,
+  "settings": {
+    "only_future_hackathons": true,
+    "min_days_ahead": 0,
+    "max_days_ahead": 90
+  }
+}
